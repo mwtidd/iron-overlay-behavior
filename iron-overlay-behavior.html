@@ -162,6 +162,7 @@ context. You should place this element as a child of `<body>` whenever possible.
 
     ready: function() {
       this._ensureSetup();
+      this._lastFocusedElement = null;
     },
 
     attached: function() {
@@ -241,15 +242,22 @@ context. You should place this element as a child of `<body>` whenever possible.
       this._toggleListeners();
 
       if (this.opened) {
+        var ownerRoot = Polymer.dom(this).getOwnerRoot();
+        var doc = ownerRoot ? Polymer.dom(ownerRoot) : document;
+        this._lastFocusedElement = doc.activeElement;
         this._prepareRenderOpened();
+      } else if (this._lastFocusedElement) {
+        this._lastFocusedElement.focus();
+        this._lastFocusedElement = null;
       }
 
       // async here to allow overlay layer to become visible.
       this._openChangedAsync = this.async(function() {
         // overlay becomes visible here
         this.style.display = '';
-        // force layout to ensure transitions will go
-        /** @suppress {suspiciousCode} */ this.offsetWidth;
+        // Force layout to ensure transitions will go. Set it to itself so it
+        // doesn't get removed by compilers.
+        this.offsetWidth = this.offsetWidth;
         if (this.opened) {
           this._renderOpened();
         } else {

@@ -79,6 +79,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </template>
     </test-fixture>
 
+    <test-fixture id="restorefocus">
+      <template>
+        <button>Button</button>
+        <test-overlay>
+          Overlay
+          <button autofocus>Inner Button</button>
+        </test-overlay>
+      </template>
+    </test-fixture>
+
     <script>
 
       function runAfterOpen(overlay, cb) {
@@ -228,9 +238,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             overlay.addEventListener('iron-overlay-canceled', function(event) {
               done();
             });
-            fireEvent('keydown', {
-              keyCode: 27
-            }, document);
+            MockInteractions.pressAndReleaseKeyOn(document, 27);
           });
         });
 
@@ -240,9 +248,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               assert.isTrue(event.detail.canceled, 'overlay is canceled');
               done();
             });
-            fireEvent('keydown', {
-              keyCode: 27
-            }, document);
+            MockInteractions.pressAndReleaseKeyOn(document, 27);
           });
         });
 
@@ -265,9 +271,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             overlay.addEventListener('iron-overlay-closed', function() {
               assert('iron-overlay-cancel should not fire');
             });
-            fireEvent('keydown', {
-              keyCode: 27
-            }, document);
+            MockInteractions.pressAndReleaseKeyOn(document, 27);
             setTimeout(function() {
               done();
             }, 10);
@@ -432,6 +436,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           assert.equal(overlay.getAttribute('aria-hidden'), 'true', 'overlay has aria-hidden="true"');
         });
 
+      });
+
+      suite('restore focus', function(){
+        test('return focus to button on close', function(done) {
+          var f = fixture('restorefocus');
+          var btn = f[0];
+          var overlay = f[1];
+          btn.focus();
+          assert.isTrue(document.activeElement === btn, 'focus given to button');
+
+          overlay.addEventListener('iron-overlay-opened', function() {
+            assert.isFalse(document.activeElement === btn, 'focus removed from button');
+            overlay.close();
+          });
+          overlay.addEventListener('iron-overlay-closed', function() {
+            assert.isTrue(document.activeElement === btn, 'focus returned to button');
+            done();
+          });
+          overlay.open();
+        });
       })
 
     </script>
